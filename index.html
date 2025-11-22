@@ -35,11 +35,11 @@
   }
 
   @media (max-width:420px){
-    /* Очень узкие телефоны: две колонки остаются, но кнопки становятся вертикальными full-width для удобного тапа */
+    /* Очень узкие телефоны: делаем так, чтобы поле количества и кнопка были в одной строке */
     .product-grid{grid-template-columns: repeat(2,1fr); gap:6px;}
-    .card-actions { flex-direction: column; gap: 10px; align-items: stretch; }
-    .card-actions button { padding:14px 20px !important; font-size:18px !important; border-radius:12px !important; width:100% !important; display:block !important; }
-    .card-actions .card-qty-input { padding:10px !important; font-size:16px !important; width:88px !important; align-self:center !important; }
+    .card-actions { flex-direction: row; gap:8px; align-items:center; justify-content:space-between; }
+    .card-actions .card-qty-input { padding:10px !important; font-size:16px !important; width:60px !important; }
+    .card-actions button { padding:12px 14px !important; font-size:16px !important; border-radius:10px !important; width:auto !important; display:inline-block !important; }
     .admin-product-btn { width:100% !important; }
   }
   </style>
