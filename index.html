@@ -5,6 +5,7 @@
 <head>
 
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     /* Сетка карточек */
     .product-grid { display:grid; grid-template-columns: repeat(2,1fr); gap:12px; padding:8px; }
@@ -23,12 +24,23 @@
   .card-actions { display:flex; gap:8px; align-items:center; }
   .card-actions button { background:linear-gradient(90deg,#ff7a00,#ff3b00); color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; }
   @media (max-width:700px){
-    .product-grid{grid-template-columns:1fr;}
-    .product-card .card-image{max-height:140px; aspect-ratio:1/1;}
-    /* Увеличенные кнопки для удобного тапа пальцем */
-    .card-actions button { padding:12px 16px; font-size:18px; border-radius:10px; }
-    .card-actions .card-qty-input { padding:10px; font-size:16px; width:70px; }
-    .admin-product-btn { font-size:1.15rem; padding:14px 12px; border-radius:12px; }
+    /* На маленьких экранах показываем две колонки, но уменьшаем gap и высоту фото */
+    .product-grid{grid-template-columns: repeat(2,1fr); gap:8px;}
+    .product-card .card-image{max-height:120px; aspect-ratio:1/1;}
+    .card-actions { flex-direction: row; gap:10px; align-items:center; }
+    .card-actions button { padding:10px 14px !important; font-size:16px !important; border-radius:10px !important; width:auto !important; display:inline-block !important; }
+    .card-actions .card-qty-input { padding:8px !important; font-size:14px !important; width:70px !important; align-self:center !important; }
+    .card-actions .card-qty-input::-webkit-outer-spin-button, .card-actions .card-qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .admin-product-btn { font-size:1.12rem; padding:12px 10px; border-radius:12px; width:auto; }
+  }
+
+  @media (max-width:420px){
+    /* Очень узкие телефоны: две колонки остаются, но кнопки становятся вертикальными full-width для удобного тапа */
+    .product-grid{grid-template-columns: repeat(2,1fr); gap:6px;}
+    .card-actions { flex-direction: column; gap: 10px; align-items: stretch; }
+    .card-actions button { padding:14px 20px !important; font-size:18px !important; border-radius:12px !important; width:100% !important; display:block !important; }
+    .card-actions .card-qty-input { padding:10px !important; font-size:16px !important; width:88px !important; align-self:center !important; }
+    .admin-product-btn { width:100% !important; }
   }
   </style>
 
@@ -1177,16 +1189,16 @@ function updateCart() {
       <img src="${imgSrc}" alt="" class="cart-mini-img" style="cursor:pointer;" onclick="showPreview('${imgSrc}')">
       <div class="cart-info-row" style="display:flex;align-items:center;flex:1 1 auto;gap:8px;min-width:0;">
         <span class="cart-title" style="flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.title}</span>
-        <span class="cart-qty" style="white-space:nowrap;">×${item.qty}</span>
-        <span class="cart-price" style="white-space:nowrap;">${item.price}c</span>
-        <span class="cart-sum" style="white-space:nowrap;font-weight:bold;">${item.qty * item.price}c</span>
+  <span class="cart-qty" style="white-space:nowrap;">×${item.qty}</span>
+  <span class="cart-price" style="white-space:nowrap;">${item.price} сом</span>
+  <span class="cart-sum" style="white-space:nowrap;font-weight:bold;">${item.qty * item.price} сом</span>
       </div>
       <button class="delete-item" onclick="removeFromCart(${i})">&times;</button>
     `;
     cartList.appendChild(div);
   });
 
-  totalSum.textContent = total;
+  totalSum.textContent = total + ' сом';
 
   // Проверка на пустоту корзины
   const clearCartButton = document.getElementById('clearCart');
@@ -1248,7 +1260,7 @@ document.getElementById('submitOrder').onclick = async () => {
   }
 
   try {
-    const items = cart.map(i => `${i.title} — ${i.qty}×${i.price}c=${i.qty * i.price}`).join('\n');
+  const items = cart.map(i => `${i.title} — ${i.qty}×${i.price} сом = ${i.qty * i.price} сом`).join('\n');
     const total = cart.reduce((sum, item) => sum + item.qty * item.price, 0);
     const currentTime = new Date().toLocaleString();
 
@@ -1267,14 +1279,7 @@ document.getElementById('submitOrder').onclick = async () => {
       status: 'Новый'
     });
 
-    const msg = `Новый заказ:
-Имя: ${name}
-Телефон: ${phone}
-Адрес: ${address}
-Товары:
-${items}
-
-Итого: ${total}c`;
+  const msg = `Новый заказ:\nИмя: ${name}\nТелефон: ${phone}\nАдрес: ${address}\nТовары:\n${items}\n\nИтого: ${total} сом`;
 
     // Отправляем уведомление в Telegram
     await fetch('https://api.telegram.org/bot7960727448:AAF0B2mizrzj7sjHP68n-1IcjLoNc6kwVkE/sendMessage', {
@@ -1345,7 +1350,7 @@ async function loadOrderHistory() {
         <p>Телефон: ${order.phone}</p>
         <p>Адрес: ${order.address}</p>
         <p>Товары: ${order.items.map(i => `${i.title} × ${i.qty}`).join(', ')}</p>
-        <p><strong>Итого: ${order.total}c</strong></p>
+  <p><strong>Итого: ${order.total} сом</strong></p>
         <p>Статус: ${order.status}</p>
         ${isAdmin ? `
           <button class="delete-order" onclick="deleteOrder('${doc.id}')">Удалить</button>
@@ -1440,9 +1445,9 @@ function updatePriceInRow(input, price, optPrice, optQty) {
   const qty = +input.value;
   const priceCell = input.parentElement.parentElement.querySelector('.price-cell span');
   if (optQty && qty >= optQty && optPrice) {
-    priceCell.textContent = optPrice + 'c';
+    priceCell.textContent = optPrice + ' сом';
   } else {
-    priceCell.textContent = price + 'c';
+    priceCell.textContent = price + ' сом';
   }
 }
 
@@ -1495,14 +1500,14 @@ function renderProducts() {
       <div class="card-body">
         <div class="card-title">${isAdmin ? `<input value="${p.title||''}" onchange="updateProductTitle('${p.id}', this.value)" class="admin-product-input"/>` : `<div>${p.title||''}</div>`}</div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <div class="card-price">${p.price || '0'}</div>
-          ${p.oldPrice ? `<div class="card-oldprice">${p.oldPrice}</div>` : ''}
+          <div class="card-price">${p.price || '0'} сом</div>
+          ${p.oldPrice ? `<div class="card-oldprice">${p.oldPrice} сом</div>` : ''}
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
           <div class="card-rating">★ ${rating} · ${reviews}</div>
         </div>
         <div class="card-actions">
-          <input type="number" min="${p.minQty||1}" value="${p.minQty||1}" class="card-qty-input" style="width:70px;text-align:center;" />
+          <input type="number" min="${p.minQty||1}" value="${p.minQty||1}" class="card-qty-input" style="text-align:center;" />
           <button onclick="addToCart('${p.id}','${p.title}',${p.price},'${p.image}', this)">Купить</button>
           ${isAdmin ? `<button onclick="deleteProduct('${p.id}')" style="background:#dc3545">Удалить</button>` : ''}
         </div>
