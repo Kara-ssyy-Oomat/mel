@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Замените URL на ваш реальный sitemap
+Sitemap: https://КараСуу хозтовары мелочы опт/sitemap.xml
