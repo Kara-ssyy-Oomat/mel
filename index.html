@@ -12,13 +12,13 @@
   .product-card { background:#fff; border-radius:6px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 1px 6px rgba(0,0,0,0.06); transition:transform .14s, box-shadow .14s; }
   .product-card:hover { transform: translateY(-6px); box-shadow:0 8px 24px rgba(0,0,0,0.12); }
   /* Более компактные фото: чуть меньше по высоте, центрируем содержимое */
-  .product-card .card-image { width:100%; aspect-ratio:4/3; max-height:180px; overflow:hidden; background:#f8f8f8; display:flex; align-items:center; justify-content:center; padding:6px; }
+  .product-card .card-image { width:100%; aspect-ratio:4/3; max-height:140px; overflow:hidden; background:#f8f8f8; display:flex; align-items:center; justify-content:center; padding:6px; }
   .product-card .card-image img { width:100%; height:100%; object-fit:contain; display:block; }
   .product-card .card-body { padding:6px; display:flex; flex-direction:column; gap:6px; }
   .card-title { font-size:13px; color:#222; min-height:36px; }
   .card-price { font-size:16px; color:#e53935; font-weight:700; }
   .card-oldprice { font-size:13px; color:#888; text-decoration:line-through; margin-left:8px; }
-  .card-rating { color:#f6b21a; font-weight:700; font-size:13px; }
+  /* ratings removed */
   .card-badges { display:flex; gap:6px; flex-wrap:wrap; }
   .card-badge { background:#ffefdb; color:#b05b00; padding:4px 6px; border-radius:4px; font-size:12px; }
   .card-actions { display:flex; gap:8px; align-items:center; }
@@ -26,9 +26,9 @@
   @media (max-width:700px){
   /* На маленьких экранах — две колонки и компактные фото */
   .product-grid{grid-template-columns: repeat(2,1fr); gap:6px;}
-  .product-card .card-image{max-height:100px; aspect-ratio:1/1;}
-    .card-actions { flex-direction: row; gap:10px; align-items:center; }
-    .card-actions button { padding:10px 14px !important; font-size:16px !important; border-radius:10px !important; width:auto !important; display:inline-block !important; }
+  .product-card .card-image{max-height:90px; aspect-ratio:1/1;}
+  .product-card .card-image { width:100%; aspect-ratio:4/3; max-height:110px; overflow:hidden; background:#f8f8f8; display:flex; align-items:center; justify-content:center; padding:6px; }
+  .product-card .card-image{max-height:90px; aspect-ratio:1/1;}
     .card-actions .card-qty-input { padding:8px !important; font-size:14px !important; width:70px !important; align-self:center !important; }
     .card-actions .card-qty-input::-webkit-outer-spin-button, .card-actions .card-qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .admin-product-btn { font-size:1.12rem; padding:12px 10px; border-radius:12px; width:auto; }
@@ -42,6 +42,15 @@
     .card-actions button { padding:12px 14px !important; font-size:16px !important; border-radius:10px !important; width:auto !important; display:inline-block !important; }
     .admin-product-btn { width:100% !important; }
   }
+
+  /* Промо-карточка использует те же размеры, что и остальные карточки */
+  .promo-card { grid-column: span 1; }
+  .promo-card .card-image { max-height:110px; }
+
+  @media (max-width:700px) {
+    .promo-card .card-image { max-height:90px !important; }
+  }
+
   </style>
 
   <!-- Firebase SDKs: app first, then compat modules -->
@@ -639,17 +648,35 @@ async function toggleProductBlock(productId, currentStatus) {
   </button>
 
   <!-- Блок для просмотра фото -->
-  <div id="previewBlock" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:1000; pointer-events:auto;">
-    <div id="previewInner" style="position:absolute; top:10%; left:50%; transform:translateX(-50%); background:white; padding:20px; border-radius:10px; box-shadow:0 0 20px #0008;">
-      <span id="closePreview" style="cursor:pointer; float:right; font-size:24px;">&times;</span>
-      <img id="previewImg" src="" alt="Просмотр" style="max-width:90vw; max-height:70vh; display:block; margin:auto;">
+  <div id="previewBlock" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:1000; pointer-events:auto; background: rgba(0,0,0,0.6);">
+    <div id="previewInner" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:12px; border-radius:10px; box-shadow:0 0 20px #0008; max-width:95vw; width:calc(100vw - 40px);">
+      <button id="prevPreview" style="position:absolute; left:6px; top:50%; transform:translateY(-50%); background:transparent; border:none; font-size:32px; cursor:pointer;">◀</button>
+      <button id="nextPreview" style="position:absolute; right:6px; top:50%; transform:translateY(-50%); background:transparent; border:none; font-size:32px; cursor:pointer;">▶</button>
+      <span id="closePreview" style="cursor:pointer; float:right; font-size:24px; background:#eee; padding:6px; border-radius:6px;">&times;</span>
+      <div style="text-align:center;">
+        <img id="previewImg" src="" alt="Просмотр" style="max-width:90vw; max-height:70vh; display:block; margin:auto; touch-action:pan-y;">
+        <div id="previewCaption" style="margin-top:8px; font-size:14px; color:#333;"></div>
+      </div>
     </div>
   </div>
 <!-- filepath: c:\Users\hp\Desktop\нож\index.html -->
 
   <h1>Мелочь - Каталог товаров</h1>
 
+  <div id="contacts" style="text-align:center; margin:8px 0 12px;">
+    <div style="font-weight:800; color:#003366; font-size:1.05rem; margin-bottom:6px;">Контактные номера: </div>
+    <div style="display:flex;gap:8px;justify-content:center;">
+      <a href="tel:+996555332133" style="display:inline-block; padding:6px 10px; background:rgba(0,123,255,0.12); color:#003366; border-radius:8px; text-decoration:none; font-weight:700;">0555 33 21 33</a>
+      <a href="tel:+996559009860" style="display:inline-block; padding:6px 10px; background:rgba(0,123,255,0.12); color:#003366; border-radius:8px; text-decoration:none; font-weight:700;">0559 00 98 60</a>
+    </div>
+  </div>
 
+  <!-- Верхний промо-слайдер: две рекламные карточки (swipe) -->
+  <div id="promoTop" style="overflow:hidden; padding:8px 0;">
+    <div id="promoSlider" style="display:flex; gap:12px; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; padding:6px;">
+      <!-- dynamic promo cards -->
+    </div>
+  </div>
 
   <div class="search-sort-row">
     <input type="text" id="search" placeholder="Поиск товара..." />
@@ -825,6 +852,7 @@ async function loadProducts() {
     }
     console.log('Products loaded:', products.length);
     renderProducts();
+    try { renderPromoCards(); } catch (e) { console.warn('renderPromoCards error', e); }
   } catch (error) {
     console.error('Error loading products:', error);
     Swal.fire('Ошибка', 'Не удалось загрузить товары: ' + error.message, 'error');
@@ -1565,12 +1593,11 @@ function renderProducts() {
     const card = document.createElement('div');
     card.className = 'product-card';
 
-    const rating = p.rating || (Math.random() * 1.5 + 3.5).toFixed(1);
-    const reviews = p.reviews || Math.floor(Math.random() * 5000 + 10);
+    // ratings removed per request
 
     card.innerHTML = `
-      <div class="card-image">
-        <img src="${p.image || 'no-image.png'}" alt="${p.title || ''}" onclick="showPreview('${p.image}')" />
+        <div class="card-image">
+        <img src="${p.image || 'no-image.png'}" alt="${p.title || ''}" onclick="openPreviewForProduct('${p.id}')" />
       </div>
       <div class="card-body">
         <div class="card-title">${isAdmin ? `<input value="${p.title||''}" onchange="updateProductTitle('${p.id}', this.value)" class="admin-product-input"/>` : `<div>${p.title||''}</div>`}</div>
@@ -1578,11 +1605,12 @@ function renderProducts() {
           <div class="card-price">${p.price || '0'} сом</div>
           ${p.oldPrice ? `<div class="card-oldprice">${p.oldPrice} сом</div>` : ''}
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-          <div class="card-rating">★ ${rating} · ${reviews}</div>
+        <div class="card-opt-info" data-opt-id="${p.id}" style="font-size:12px;color:#007bff;margin-top:4px;">
+          ${p.optPrice && p.optQty ? `Опт: ${p.optPrice} сом при ${p.optQty} шт` : ''}
         </div>
+        <!-- ratings removed -->
         <div class="card-actions">
-          <input type="number" min="${p.minQty||1}" value="${p.minQty||1}" class="card-qty-input" style="text-align:center;" />
+          <input type="number" min="${p.minQty||1}" value="${p.minQty||1}" class="card-qty-input" style="text-align:center;" oninput="updateCardPrice(this, '${p.id}')" />
           <button onclick="addToCart('${p.id}','${p.title}',${p.price},'${p.image}', this)">Купить</button>
           ${isAdmin ? `<button onclick="deleteProduct('${p.id}')" style="background:#dc3545">Удалить</button>` : ''}
         </div>
@@ -1590,8 +1618,264 @@ function renderProducts() {
     `;
 
     container.appendChild(card);
+    // Непосредственно обновляем цену на карточке в зависимости от текущего значения поля количества
+    try {
+      const qtyInput = card.querySelector('.card-qty-input');
+      if (qtyInput) updateCardPrice(qtyInput, p.id);
+    } catch (e) {
+      console.error('updateCardPrice init error', e);
+    }
   });
+
+  // Заполнить верхний промо-слайдер (две карточки)
+  try {
+    renderPromoCards();
+  } catch (err) {
+    console.error('renderPromoCards error', err);
+  }
 }
+
+// Обновляет отображаемую цену в карточке товара в реальном времени
+function updateCardPrice(inputEl, productId) {
+  try {
+    const qty = parseInt(inputEl.value, 10) || 1;
+    const product = products.find(p => p.id === productId) || {};
+    const card = inputEl.closest && inputEl.closest('.product-card');
+    if (!card) return;
+    const priceEl = card.querySelector('.card-price');
+    let basePrice = product.price || 0;
+    const optPrice = product.optPrice || null;
+    const optQty = product.optQty || null;
+    const optInfoEl = card.querySelector('.card-opt-info');
+
+    if (optQty && optPrice && qty >= optQty) {
+      // Показываем оптовую цену и зачеркнутую розничную
+      if (priceEl) priceEl.textContent = optPrice + ' сом';
+      // Показать старую цену рядом
+      let old = card.querySelector('.card-oldprice');
+      if (!old) {
+        const span = document.createElement('div');
+        span.className = 'card-oldprice';
+        span.textContent = basePrice + ' сом';
+        span.style.marginLeft = '8px';
+        span.style.fontSize = '13px';
+        span.style.color = '#888';
+        // вставляем после priceEl
+        if (priceEl && priceEl.parentNode) priceEl.parentNode.appendChild(span);
+      } else {
+        old.textContent = basePrice + ' сом';
+      }
+      if (optInfoEl) {
+        optInfoEl.textContent = `Оптовая цена: ${optPrice} сом (при ${optQty} шт)`;
+        optInfoEl.style.color = '#d32f2f';
+        optInfoEl.style.fontWeight = '700';
+      }
+    } else {
+      // Показываем обычную цену и удаляем oldprice если был
+      if (priceEl) priceEl.textContent = basePrice + ' сом';
+      const old = card.querySelector('.card-oldprice');
+      if (old && old.parentNode) old.parentNode.removeChild(old);
+      if (optInfoEl) {
+        if (optPrice && optQty) {
+          optInfoEl.textContent = `Опт: ${optPrice} сом при ${optQty} шт`;
+          optInfoEl.style.color = '#007bff';
+          optInfoEl.style.fontWeight = 'normal';
+        } else {
+          optInfoEl.textContent = '';
+        }
+      }
+    }
+  } catch (err) {
+    console.error('updateCardPrice error', err);
+  }
+}
+
+// Промо-слайдер: отрисовывает одну карточку в верхней области (первая видимая)
+function renderPromoCards() {
+  const slider = document.getElementById('promoSlider');
+  if (!slider) return;
+  slider.innerHTML = '';
+  // Берём видимые товары (не заблокированные)
+  const visible = products.filter(p => !p.blocked);
+  const promo = visible.slice(0, 1); // только одна карточка
+
+  promo.forEach(p => {
+    const card = document.createElement('div');
+    // Give promo the same base styles as product cards so sizes match on mobile
+    card.className = 'product-card promo-card';
+    card.style.cssText = 'overflow:hidden; background:#fff; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.08);';
+    card.innerHTML = `
+      <div class="card-image" style="position:relative;">
+        <img id="promoImg" src="${p.image||'no-image.png'}" alt="${p.title||''}" onclick="openPreviewForProduct('${p.id}')" style="cursor:pointer; transition:opacity .6s ease;" />
+        <div id="promoPrice" style="position:absolute; right:8px; top:8px; background:rgba(0,0,0,0.45); color:#ffd54f; padding:6px 8px; border-radius:6px; font-weight:700;">${p.price||0} сом</div>
+      </div>
+    `;
+    slider.appendChild(card);
+  });
+
+  // Навесим паузу автоплея при наведении на промо
+  const promoImgEl = slider.querySelector('#promoImg');
+  const promoInnerEl = slider.querySelector('#promoInner');
+  if (promoImgEl) {
+    promoImgEl.addEventListener('mouseenter', () => stopPromoAutoplay());
+    promoImgEl.addEventListener('mouseleave', () => { if (promoList.length>1) startPromoAutoplay(); });
+  }
+  if (promoInnerEl) {
+    promoInnerEl.addEventListener('mouseenter', () => stopPromoAutoplay());
+    promoInnerEl.addEventListener('mouseleave', () => { if (promoList.length>1) startPromoAutoplay(); });
+  }
+
+  // Собираем список изображений для автоплей (все изображения видимых товаров)
+  try {
+    promoList = visible.map(v => v.image).filter(Boolean);
+    promoIndex = 0;
+    // Запускаем автоплей, если более одного изображения
+    stopPromoAutoplay();
+    if (promoList.length > 1) startPromoAutoplay();
+  } catch (e) {
+    console.error('promo autoplay setup error', e);
+  }
+
+  if (promo.length === 0) {
+    slider.innerHTML = '<div style="padding:12px;color:#666;">Промо-карточки отсутствуют</div>';
+  }
+}
+
+// Галерея-превью по товару: собирает все изображения со страницы и позволяет свайпать
+let _gallery = [];
+let _galleryIndex = 0;
+let _touchStartX = null;
+
+// Промо-автоплей
+let promoList = [];
+let promoIndex = 0;
+let promoTimer = null;
+
+function startPromoAutoplay() {
+  stopPromoAutoplay();
+  promoTimer = setInterval(() => {
+    showNextPromoImage();
+  }, 2500);
+}
+
+function stopPromoAutoplay() {
+  if (promoTimer) { clearInterval(promoTimer); promoTimer = null; }
+}
+
+function showNextPromoImage() {
+  try {
+    const img = document.getElementById('promoImg');
+    const title = document.getElementById('promoTitle');
+    const price = document.getElementById('promoPrice');
+    if (!img) return;
+    promoIndex = (promoIndex + 1) % promoList.length;
+    const nextSrc = promoList[promoIndex];
+    // Плавная смена через opacity
+    const onFade = function() {
+      img.removeEventListener('transitionend', onFade);
+      img.src = nextSrc;
+      // Поправим титул/цену, найдём продукт
+      const prod = products.find(p => p.image === nextSrc) || {};
+      if (title) title.textContent = prod.title || '';
+      if (price) price.textContent = (prod.price || 0) + ' сом';
+      requestAnimationFrame(() => { img.style.opacity = '1'; });
+    };
+    img.addEventListener('transitionend', onFade);
+    img.style.opacity = '0';
+  } catch (e) {
+    console.error('showNextPromoImage error', e);
+  }
+}
+
+
+function openPreviewForProduct(productId) {
+  // Собираем все реальные src изображений товаров/промо/мини-фото с DOM
+  const imgs = Array.from(document.querySelectorAll('#productTable img, #promoSlider img, .cart-mini-img'));
+  _gallery = imgs.map(el => ({ src: el.src, title: el.alt || (el.getAttribute('data-title') || ''), el } )).filter(x => x.src);
+
+  console.log('openPreviewForProduct -> collected images for gallery:', _gallery.map(g=>g.src));
+
+  // Пытаемся найти индекс по productId: сначала ищем элемент, чей src совпадает с продуктовой картинкой
+  const prod = products.find(p => p.id === productId);
+  let idx = 0;
+  if (prod && prod.image) {
+    idx = _gallery.findIndex(g => g.src === prod.image);
+    if (idx === -1) idx = 0;
+  }
+  _galleryIndex = idx;
+  showGalleryIndex();
+
+  const block = document.getElementById('previewBlock');
+  block.style.display = 'block';
+  document.body.classList.add('modal-open');
+
+  const prevBtn = document.getElementById('prevPreview');
+  const nextBtn = document.getElementById('nextPreview');
+  if (_gallery.length <= 1) {
+    // нет других фото — скрываем стрелки
+    if (prevBtn) prevBtn.style.display = 'none';
+    if (nextBtn) nextBtn.style.display = 'none';
+  } else {
+    if (prevBtn) { prevBtn.style.display = ''; prevBtn.onclick = prevGallery; }
+    if (nextBtn) { nextBtn.style.display = ''; nextBtn.onclick = nextGallery; }
+  }
+
+  const img = document.getElementById('previewImg');
+  img.ontouchstart = function(e) { _touchStartX = e.touches[0].clientX; };
+  img.ontouchend = function(e) {
+    if (_touchStartX == null) return;
+    const dx = (e.changedTouches[0].clientX - _touchStartX);
+    _touchStartX = null;
+    if (dx < -40) nextGallery();
+    else if (dx > 40) prevGallery();
+  };
+
+  document.addEventListener('keydown', _galleryKeyHandler);
+}
+
+function _galleryKeyHandler(e) {
+  if (e.key === 'ArrowLeft') prevGallery();
+  if (e.key === 'ArrowRight') nextGallery();
+  if (e.key === 'Escape') closePreview();
+}
+
+function showGalleryIndex() {
+  const item = _gallery[_galleryIndex] || { src: '', title: '' };
+  const img = document.getElementById('previewImg');
+  img.src = item.src;
+  document.getElementById('previewCaption').textContent = item.title || '';
+}
+
+function prevGallery() {
+  if (_gallery.length === 0) return;
+  _galleryIndex = (_galleryIndex - 1 + _gallery.length) % _gallery.length;
+  showGalleryIndex();
+}
+
+function nextGallery() {
+  if (_gallery.length === 0) return;
+  _galleryIndex = (_galleryIndex + 1) % _gallery.length;
+  showGalleryIndex();
+}
+
+function closePreview() {
+  const block = document.getElementById('previewBlock');
+  block.style.display = 'none';
+  document.body.classList.remove('modal-open');
+  try {
+    document.getElementById('prevPreview').onclick = null;
+    document.getElementById('nextPreview').onclick = null;
+    document.getElementById('previewImg').ontouchstart = null;
+    document.getElementById('previewImg').ontouchend = null;
+    document.removeEventListener('keydown', _galleryKeyHandler);
+  } catch (e) {}
+}
+
+// Поддержка кнопки закрытия
+document.getElementById('closePreview').onclick = function() { closePreview(); };
+document.getElementById('previewBlock').onclick = function(e) {
+  if (e.target === this) closePreview();
+};
 
 // Обработчик входа администратора
 document.getElementById('loginAdmin').addEventListener('click', function() {
@@ -1850,6 +2134,13 @@ async function toggleProductBlock(productId, currentStatus) {
     <button id="scrollTopBtn" style="background:#007bff;color:#fff;border:none;padding:10px 14px;border-radius:12px;box-shadow:0 2px 8px #0001;cursor:pointer;font-size:18px;">▲</button>
     <button id="scrollBottomBtn" style="background:#007bff;color:#fff;border:none;padding:10px 14px;border-radius:12px;box-shadow:0 2px 8px #0001;cursor:pointer;font-size:18px;">▼</button>
   </div>
+
+  <footer id="siteFooter" style="background: #003366; color: #fff; padding:14px 10px; text-align:center; margin-top:18px;">
+    <div style="max-width:1200px; margin:0 auto; font-weight:700;">
+      О нас: мы первый рук из китая — у нас низкие цены
+    </div>
+  </footer>
+
 </body>
 <script>
 // --- Функция для показа/скрытия админ-панели ---
